@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><title>Carrusel de fotos</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#7c3aed">
+<link rel="icon" href="icon-192.png">
+<style id="stageCss">
+.stage{container-type:size;position:relative;width:100%;height:100%;overflow:hidden;background:#12101c center/cover no-repeat;font-family:system-ui,sans-serif}
+.wrap{position:absolute;inset:0;perspective:150cqw}
+.card{position:absolute;left:50%;top:50%;will-change:transform;transition:transform var(--dur,.9s) var(--ease,cubic-bezier(.2,.7,.2,1)),opacity var(--dur,.9s),filter var(--dur,.9s),clip-path var(--dur,.9s)}
+.card img{display:block;box-sizing:border-box;border:var(--bw) solid var(--bc);border-radius:.5cqw;box-shadow:0 0 3cqw color-mix(in srgb,var(--bc) 55%,transparent),0 2cqw 5cqw #000a;background:#000}
+.kb img{animation:kb 16s ease-out forwards}@keyframes kb{to{transform:scale(1.07)}}
+.msg{position:absolute;inset:0;display:grid;place-items:center;color:#fff8;font-size:3cqw}
+</style>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0f0d17;color:#e9e6f5;font:15px system-ui,sans-serif;padding:16px}
+.top{display:flex;align-items:center;gap:14px;margin-bottom:12px}h1{font-size:20px;margin:0}h1 span{color:#9b5de5}
+.g{display:grid;grid-template-columns:330px 1fr;gap:18px;align-items:start}
+@media(max-width:900px){.g{grid-template-columns:1fr}}
+.box{background:#191626;border:1px solid #2c2744;border-radius:12px;padding:12px;margin-bottom:12px}
+.box h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#9b5de5;margin:0 0 8px}
+button,select{background:#2a2145;color:#fff;border:1px solid #4b3a7a;border-radius:8px;padding:7px 11px;font:inherit;cursor:pointer}
+button:hover{background:#3a2d63}button.p{background:#7c3aed;border-color:#9b5de5}
+.r{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;align-items:center}
+.f{display:flex;align-items:center;gap:8px;margin:7px 0}.f label{flex:0 0 112px;color:#b9b2d6}.f input[type=range]{flex:1}.f output{width:30px;text-align:right;color:#b9b2d6}
+small{color:#8f88ad;display:block;margin-top:6px}
+#pv{position:relative;aspect-ratio:16/9;width:min(100%,calc((100vh - 175px)*16/9));min-width:320px;border:1px solid #2c2744;border-radius:8px;overflow:hidden}
+#pv .stage{position:absolute;inset:0;width:auto;height:auto}
+#warn{background:#5b1d2b;padding:10px;border-radius:8px;margin-bottom:12px;display:none}
+</style></head><body>
+<div class="top"><h1>Carrusel de fotos <span>· control</span></h1><button id="inst" class="p" style="display:none">⬇ Instalar app</button></div>
+<div id="warn">Este navegador no puede leer carpetas. Usá Chrome o Edge.</div>
+<div class="g"><div>
+ <div class="box"><h2>Carpetas</h2>
+  <div class="r"><button class="p" id="bp">📁 Carpeta de fotos</button><span id="lp">sin elegir</span></div>
+  <div class="r"><button id="bb">🖼 Carpeta de fondo</button><span id="lb">sin elegir</span></div>
+  <div class="r"><button id="br">↻ Reconectar carpetas</button></div>
+  <small>Se recuerdan entre programas. El fondo es la imagen más nueva de su carpeta.</small></div>
+ <div class="box"><h2>Salida</h2>
+  <div class="r"><button class="p" id="o2">🖥 Abrir en 2ª pantalla</button><button id="o1">Ventana normal</button></div>
+  <small>En la salida: doble clic = pantalla completa · ← → pasan fotos · espacio pausa/reanuda.</small></div>
+ <div class="box"><h2>Efecto</h2>
+  <div class="f"><label>Efecto</label><select data-k="fx">
+   <option value="cover">Carrusel 3D</option><option value="cinta">Cinta plana</option><option value="abanico">Abanico</option><option value="pila">Pila de fotos</option>
+   <option value="slide">Deslizar</option><option value="zoom">Fundido con zoom</option><option value="flip">Giro 3D</option><option value="cubo">Cubo</option>
+   <option value="puerta">Puerta</option><option value="cortina">Cortina (barrido)</option><option value="caida">Caída</option><option value="remolino">Remolino</option>
+   <option value="rebote">Rebote</option><option value="rand">★ Aleatorio</option></select></div>
+  <div class="f"><label>Velocidad (seg)</label><input type="range" data-k="dur" min="0.3" max="2.5" step="0.1"><output></output></div>
+  <div class="f"><label>Desenfoque atrás</label><input type="range" data-k="blur" min="0" max="30"><output></output></div>
+  <div class="f"><label>Oscuro atrás</label><input type="range" data-k="dim" min="0" max="70"><output></output></div>
+  <div class="f"><label>Zoom lento</label><input type="checkbox" data-k="kb"></div></div>
+ <div class="box"><h2>Aspecto</h2>
+  <div class="f"><label>Tamaño foto</label><input type="range" data-k="size" min="30" max="100"><output></output></div>
+  <div class="f"><label>Grosor borde</label><input type="range" data-k="bw" min="0" max="15"><output></output></div>
+  <div class="f"><label>Color borde</label><input type="color" data-k="bc"></div></div>
+ <div class="box"><h2>Pasaje</h2>
+  <div class="f"><label>Segundos</label><input type="range" data-k="sec" min="2" max="30"><output></output></div>
+  <div class="f"><label>Automático</label><input type="checkbox" data-k="auto"></div>
+  <div class="f"><label>Parar en la última</label><input type="checkbox" data-k="stop"></div>
+  <div class="f"><label>Nuevas primero</label><input type="checkbox" data-k="next"></div></div>
+</div><div>
+ <div id="pv"></div>
+ <div class="r" style="margin-top:12px"><button id="pr">◀</button><button id="nx">▶</button><button id="ns">Nuevo programa (ignorar fotos anteriores)</button><button id="all">Ver todas</button><span id="st">—</span></div>
+</div></div>
+<script>
+const IMG=/\.(jpe?g|png|webp|gif|bmp|avif)$/i,$=id=>document.getElementById(id),css=$('stageCss');
+const FX=['cover','cinta','abanico','pila','slide','zoom','flip','cubo','puerta','cortina','caida','remolino','rebote'];
+let cfg={fx:'cover',size:78,bw:7,bc:'#9b5de5',sec:6,dur:.9,blur:8,dim:25,kb:false,auto:true,stop:true,next:true,since:0};
+try{Object.assign(cfg,JSON.parse(localStorage.getItem('carr')||'{}'))}catch(e){}
+const saveCfg=()=>{try{localStorage.setItem('carr',JSON.stringify(cfg))}catch(e){}};
+const rfx=()=>FX[Math.floor(Math.random()*FX.length)];
+let items=[],idx=0,pDir,bDir,bgUrl='',T,stages=[],out,fxNow=cfg.fx=='rand'?rfx():cfg.fx;
+
+function pose(d,fx,x,w0){const a=Math.abs(d),g=Math.sign(d);
+ const P={tx:0,ty:0,tz:0,tz2:0,ry:0,rz:0,s:1,o:1,bl:a,e:'',org:'50% 50%',cp:'inset(0)'};
+ switch(fx){
+ case'cinta':P.tx=x;P.s=1-.26*a;P.o=[1,.85,.5][a];break;
+ case'abanico':{const t=d*17*Math.PI/180;P.tx=90*Math.sin(t);P.ty=90*(1-Math.cos(t));P.rz=d*17;P.o=[1,.9,.5][a];break}
+ case'pila':if(d<0){P.tx=-110;P.rz=-28;P.o=0}else{P.s=[1,.95,.9][a];P.rz=[0,3,-4][a];P.tx=[0,1.5,-1][a];P.o=[1,.95,.7][a]}break;
+ case'slide':P.tx=d*100;P.o=a?0:1;P.bl=0;break;
+ case'zoom':P.s=d<0?1.2:d>0?.8:1;P.o=a?0:1;P.bl=0;break;
+ case'flip':P.ry=d*100;P.o=a?0:1;P.bl=0;break;
+ case'cubo':P.tz=-w0/2;P.ry=d*90;P.tz2=w0/2;P.o=a>1?0:1;P.bl=0;break;
+ case'puerta':P.org='0% 50%';if(d<0){P.ry=-105;P.o=0}else P.o=a>1?0:1;P.bl=a?1:0;break;
+ case'cortina':P.cp=d>0?'inset(0 0 0 100%)':d<0?'inset(0 100% 0 0)':'inset(0)';P.o=a>1?0:1;P.bl=0;break;
+ case'caida':P.ty=d>0?-80:d<0?80:0;P.rz=d*8;P.o=a?0:1;P.bl=0;break;
+ case'remolino':P.s=a?0:1;P.rz=d*160;P.o=a?0:1;P.bl=0;break;
+ case'rebote':P.tx=d*60;P.s=a?.6:1;P.o=a?0:1;P.e='cubic-bezier(.3,1.6,.5,1)';P.bl=0;break;
+ default:P.tx=x;P.tz=-a*10;P.ry=-d*48;P.s=1-.16*a;P.o=[1,.85,.45][a]}
+ return P}
+
+function Stage(root){
+ const D=root.ownerDocument,wrap=D.createElement('div');wrap.className='wrap';root.appendChild(wrap);
+ const els=new Map();let lastBg=null;
+ const ap=(el,P,c,a)=>{const s=el.style;
+  s.transform=`translate(-50%,-50%) translateX(${P.tx}cqw) translateY(${P.ty}cqw) translateZ(${P.tz}cqw) rotateY(${P.ry}deg) rotateZ(${P.rz}deg) translateZ(${P.tz2}cqw) scale(${P.s})`;
+  s.opacity=P.o;s.clipPath=P.cp;s.transformOrigin=P.org;s.setProperty('--ease',P.e);
+  s.filter=`blur(${(c.blur*.1*P.bl).toFixed(2)}cqw) brightness(${(1-c.dim/100*Math.min(P.bl,1.3)).toFixed(2)})`;
+  s.zIndex=10-a;el.classList.toggle('kb',!!c.kb)};
+ this.update=(items,idx,c,bg)=>{
+  root.style.setProperty('--bw',c.bw*.1+'cqw');root.style.setProperty('--bc',c.bc);root.style.setProperty('--dur',c.dur+'s');
+  if(bg!==lastBg){root.style.backgroundImage=bg?`url("${bg}")`:'';lastBg=bg}
+  const n=items.length,slots=[];
+  for(let d=-2;d<=2;d++){let j=idx+d;if(n>=5&&!c.stop)j=((j%n)+n)%n;else if(j<0||j>=n)continue;slots.push([d,items[j]])}
+  const asp=(root.clientHeight/root.clientWidth)||.5625,K=c.fx=='cinta'?[.37,.24]:[.28,.23];
+  const dim=it=>{const ar=it.ar||1,w=Math.min(c.size,c.size*asp*ar);return[w,w/ar]};
+  const Wd=d=>{const q=slots.find(z=>z[0]==d);return q?dim(q[1])[0]:0};
+  const xs=d=>{const a=Math.abs(d),g=Math.sign(d);if(!a)return 0;let x=Wd(0)/2+K[0]*Wd(g)+1.5;if(a==2)x+=K[0]*Wd(g)+K[1]*Wd(2*g)+1.5;return g*x};
+  const keep=new Set();
+  for(const[d,it]of slots){keep.add(it.id);const a=Math.abs(d),P=pose(d,c.fx,xs(d),Wd(0));let el=els.get(it.id);
+   const[dw,dh]=dim(it);
+   if(!el){el=D.createElement('div');el.className='card';const im=D.createElement('img');im.src=it.url;el.appendChild(im);
+    el.style.transition='none';ap(el,P,c,a);el.style.opacity=0;wrap.appendChild(el);els.set(it.id,el);el.getBoundingClientRect();el.style.transition=''}
+   const im=el.firstChild;im.style.width=dw+'cqw';im.style.height=dh+'cqw';ap(el,P,c,a)}
+  for(const[k,el]of[...els])if(!keep.has(k)){els.delete(k);el.style.opacity=0;setTimeout(()=>el.remove(),c.dur*1000+200)}
+  let m=wrap.querySelector('.msg');
+  if(!n&&!m){m=D.createElement('div');m.className='msg';m.textContent='Esperando fotos…';wrap.appendChild(m)}else if(n&&m)m.remove()}}
+
+const prev=new Stage($('pv').appendChild(Object.assign(document.createElement('div'),{className:'stage'})).parentNode.firstChild);
+stages=[prev];
+
+let rt=0;
+async function render(){
+ const n=items.length,my=++rt;
+ if(n){const pend=[];
+  for(let k=-2;k<=2;k++){const it=items[((idx+k)%n+n)%n];if(!it.url)it.url=URL.createObjectURL(it.f);
+   if(!it.ar)pend.push(new Promise(r=>{const im=new Image();im.onload=()=>{it.ar=im.naturalWidth/im.naturalHeight;r()};im.onerror=()=>{it.ar=1;r()};im.src=it.url}))}
+  await Promise.all(pend);if(my!=rt)return;
+  items.forEach((it,i)=>{let d=Math.abs(i-idx);d=Math.min(d,n-d);if(d>3&&it.url){URL.revokeObjectURL(it.url);it.url=null}})}
+ const c=Object.assign({},cfg,{fx:fxNow});
+ stages.forEach(s=>s.update(items,idx,c,bgUrl));
+ $('st').textContent=n?`Foto ${idx+1} de ${n}`+(cfg.stop&&idx==n-1?' · última':''):'Sin fotos todavía'}
+function go(d){const n=items.length;if(!n)return;let j=idx+d;
+ if(cfg.stop){if(j<0||j>=n)return}else j=(j+n)%n;
+ idx=j;if(cfg.fx=='rand')fxNow=rfx();render();timer()}
+function timer(){clearInterval(T);if(cfg.auto)T=setInterval(()=>go(1),cfg.sec*1000)}
+
+async function scan(){
+ if(pDir){const seen=new Map();
+  try{for await(const h of pDir.values()){if(h.kind!='file'||!IMG.test(h.name))continue;const f=await h.getFile();
+   if(!f.size||f.lastModified<cfg.since)continue;seen.set(h.name+f.lastModified+f.size,f)}}
+  catch(e){$('st').textContent='No puedo leer la carpeta: '+e.message;return}
+  const cur=items[idx]&&items[idx].id;
+  items=items.filter(i=>{if(seen.has(i.id)){seen.delete(i.id);return true}if(i.url)URL.revokeObjectURL(i.url);return false});
+  const add=[...seen].map(([id,f])=>({id,f,t:f.lastModified,url:null})).sort((a,b)=>a.t-b.t);
+  const k=items.findIndex(i=>i.id==cur);idx=k>=0?k:Math.min(idx,Math.max(items.length-1,0));
+  if(add.length){if(!items.length){items=add;idx=add.length-1}else if(cfg.next)items.splice(idx+1,0,...add);else items.push(...add);render()}
+  else if(!seen.size)render()}
+ if(bDir){try{let best;for await(const h of bDir.values()){if(h.kind!='file'||!IMG.test(h.name))continue;const f=await h.getFile();if(!best||f.lastModified>best.lastModified)best=f}
+  const id=best?best.name+best.lastModified:'';if(id!==scan.bg){scan.bg=id;if(bgUrl)URL.revokeObjectURL(bgUrl);bgUrl=best?URL.createObjectURL(best):'';render()}}catch(e){}}}
+setInterval(scan,3000);
+
+const idb=()=>new Promise((r,j)=>{const q=indexedDB.open('carrusel',1);q.onupgradeneeded=()=>q.result.createObjectStore('h');q.onsuccess=()=>r(q.result);q.onerror=()=>j(q.error)});
+const saveH=async(k,v)=>{try{(await idb()).transaction('h','readwrite').objectStore('h').put(v,k)}catch(e){}};
+const loadH=async k=>{try{const d=await idb();return await new Promise(r=>{const q=d.transaction('h').objectStore('h').get(k);q.onsuccess=()=>r(q.result);q.onerror=()=>r()})}catch(e){}};
+function setDir(k,h){if(k=='p'){pDir=h;$('lp').textContent=h.name}else{bDir=h;$('lb').textContent=h.name}scan()}
+async function pick(k){try{const h=await showDirectoryPicker({mode:'read'});setDir(k,h);saveH(k,h)}catch(e){}}
+async function reconnect(ask){for(const k of['p','b']){const h=await loadH(k);if(!h)continue;
+ try{const m={mode:'read'};let p=await h.queryPermission(m);if(p!='granted'&&ask)p=await h.requestPermission(m);if(p=='granted')setDir(k,h)}catch(e){}}}
+$('bp').onclick=()=>pick('p');$('bb').onclick=()=>pick('b');$('br').onclick=()=>reconnect(true);
+document.addEventListener('pointerdown',e=>{if(!pDir&&!e.target.closest('#bp,#bb'))reconnect(true)},{once:true});
+
+async function openOut(second){
+ let o={width:960,height:540};
+ if(second&&window.getScreenDetails){try{const sd=await getScreenDetails();const s=sd.screens.find(x=>!x.isPrimary)||sd.screens[0];o={left:s.availLeft,top:s.availTop,width:s.availWidth,height:s.availHeight}}catch(e){}}
+ const w=window.open('','salida_carrusel',Object.entries(o).map(([k,v])=>k+'='+v).join(',')+',popup');
+ if(!w)return alert('Permití las ventanas emergentes para esta página.');
+ w.document.open();w.document.write('<!DOCTYPE html><title>Salida carrusel</title><body style="margin:0;height:100vh;overflow:hidden;background:#000"><div id="s" class="stage"></div>');w.document.close();
+ const st=css.cloneNode(true);st.textContent+='html:fullscreen{cursor:none}';w.document.head.appendChild(st);
+ out=new Stage(w.document.getElementById('s'));stages=[prev,out];
+ w.addEventListener('keydown',key);
+ w.addEventListener('dblclick',()=>w.document.fullscreenElement?w.document.exitFullscreen():w.document.documentElement.requestFullscreen());
+ w.addEventListener('pagehide',()=>{stages=[prev]});render()}
+$('o2').onclick=()=>openOut(true);$('o1').onclick=()=>openOut(false);
+
+function key(e){if(/INPUT|SELECT/.test(e.target.tagName)&&e.view===window&&e.key!=' ')return;
+ if(e.key=='ArrowRight')go(1);else if(e.key=='ArrowLeft')go(-1);
+ else if(e.key==' '){e.preventDefault();cfg.auto=!cfg.auto;sync();saveCfg();timer()}}
+addEventListener('keydown',key);
+$('pr').onclick=()=>go(-1);$('nx').onclick=()=>go(1);
+$('ns').onclick=()=>{cfg.since=Date.now();saveCfg();items=[];idx=0;render();scan()};
+$('all').onclick=()=>{cfg.since=0;saveCfg();scan()};
+
+function sync(){document.querySelectorAll('[data-k]').forEach(i=>{const v=cfg[i.dataset.k];if(i.type=='checkbox')i.checked=v;else i.value=v;if(i.nextElementSibling&&i.nextElementSibling.tagName=='OUTPUT')i.nextElementSibling.textContent=v})}
+document.querySelectorAll('[data-k]').forEach(i=>i.addEventListener('input',()=>{const k=i.dataset.k;
+ cfg[k]=i.type=='checkbox'?i.checked:i.type=='range'?+i.value:i.value;
+ if(i.nextElementSibling&&i.nextElementSibling.tagName=='OUTPUT')i.nextElementSibling.textContent=i.value;
+ if(k=='fx')fxNow=cfg.fx=='rand'?rfx():cfg.fx;saveCfg();render();timer()}));
+if(!window.showDirectoryPicker)$('warn').style.display='block';
+
+let ip;addEventListener('beforeinstallprompt',e=>{e.preventDefault();ip=e;$('inst').style.display='inline-block'});
+$('inst').onclick=()=>{if(ip){ip.prompt();ip=null;$('inst').style.display='none'}};
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+sync();render();timer();reconnect(false);
+</script></body></html>
